@@ -4,7 +4,8 @@ import pygame
 import numpy as np
 from setup.settings import Settings
 from setup.background import Background
-from setup.background import FitLine
+from plot import Plot
+from line import FitLine
 
 from setup.pygameBasics import PygameBasics
 
@@ -13,22 +14,34 @@ class Main(PygameBasics):
         pygame.init()
         super().__init__()
         self.fitline = FitLine(self.win)
+        self.plot = Plot(self.win)
 
         self.arr = None
         self.line = (500, -1.4) # Tuple for intercept and slope
-        self.moving = False
-
         self.mxmy = None
+
+        self.moving = False
+        self.rotating = False
+        self.reverse_rotating = False
 
 
     """ EVENTS """
 
-    def mouse_button_down_events(self):
-        self.moving = True
-        pygame.mouse.get_rel()
+    def left_click_events(self):
+        #pygame.mouse.get_rel()
+        #self.moving = True
+
+        self.reverse_rotating = True
+
+
+    def right_click_events(self):
+        #pygame.mouse.get_rel()
+        self.rotating = True
 
     def mouse_button_up_events(self):
         self.moving = False
+        self.rotating = False
+        self.reverse_rotating = False
 
     def keydown_events(self, event):
         if event.key == pygame.K_q:
@@ -38,56 +51,33 @@ class Main(PygameBasics):
     """ UPDATES """
 
     def updates(self):
-        self.draw_plot()
-        #self.calculateRSS()
-        self.draw_fit_line()
-        self.move_line()
-        self.update_screen()
+        self.fitline.move(self.moving)
+        self.fitline.rotate(self.rotating, self.reverse_rotating)
+        self.draw()
 
 
-    def calculateRSS(self):
-        pass
-
-    def draw_fit_line(self):
+    def draw(self):
+        #self.plot.draw(self.arr) ## Turn off for trig stuff
         self.fitline.draw()
-
-    def move_line(self):
-        if self.moving:
-            mx, my = pygame.mouse.get_rel()
-            self.fitline.move(mx, my)
-            
-
-    def draw_plot(self):
-        w, h = 1000, 500
-
-        left, top = 200, 100
-        right, bottom = left + w, top + h
-
-
-        zero_zero = (left, bottom)
-
-        pygame.draw.line(self.win, self.set.grey, (left, top), zero_zero, 2)
-        pygame.draw.line(self.win, self.set.grey, zero_zero, (right, bottom), 2)
-
-        for pair in self.arr:
-            x = pair[0] + left
-            y = pair[1] + top
-
-            pygame.draw.circle(self.win, self.set.blue, (x,y), 2, 0)
-
+        self.update_screen()
 
 
     """ MAIN """
     def main(self):
 
-        #self.arr = np.load("usa_housing_scaled.npy")
-        self.arr = np.load("ecommerce.npy")
-
-        #print(arr[:20])
-
+        # self.arr = np.load('data/ecommerce.npy')
+        #
+        # MIT = pygame.image.load('mit.jpg')
+        # degrees = 0
 
         while True:
             self.win.fill(self.set.white)
+
+            # degrees += -1
+            # rotated = pygame.transform.rotate(MIT, degrees)
+            # self.win.blit(rotated, (800, 200))
+            # pygame.display.flip()
+
             self.set.clock.tick(self.set.FPS)
             self.events()
             self.updates()
