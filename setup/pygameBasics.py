@@ -29,6 +29,9 @@ class PygameBasics:
             elif event.type == pygame.KEYDOWN:
                 self.keydown_events(event)
 
+            elif event.type == pygame.KEYUP:
+                self.keyup_events(event)
+
             elif event.type == pygame.QUIT:
                 pygame.quit(), quit()
 

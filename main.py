@@ -1,4 +1,16 @@
-""" APRIL 5, 2021 """
+""" APRIL 7, 2021 """
+
+"""
+Today, I spent a lot of time learning trigonometry.
+To refresh, check out my Jupyter notebook.
+Changes made:
+    - The line is defined by its mid point and compass angle
+        - Math angles start at "East", 90 degrees = "South", etc.
+    - Added rotation capability
+
+"""
+
+
 
 import pygame
 import numpy as np
@@ -21,43 +33,52 @@ class Main(PygameBasics):
         self.mxmy = None
 
         self.moving = False
-        self.rotating = False
-        self.reverse_rotating = False
+        self.rotating = False ## Rotate very slow -- 'd'
+        self.counter_rotating = False ## Rotate very slow -- 'a'
+        self.super_rotating = False ## Rotate very fast -- right-click
 
 
     """ EVENTS """
 
     def left_click_events(self):
-        #pygame.mouse.get_rel()
-        #self.moving = True
-
-        self.reverse_rotating = True
-
+        pygame.mouse.get_rel()
+        self.moving = True
 
     def right_click_events(self):
-        #pygame.mouse.get_rel()
-        self.rotating = True
+        self.super_rotating = True
 
     def mouse_button_up_events(self):
         self.moving = False
-        self.rotating = False
-        self.reverse_rotating = False
+        self.super_rotating = False
 
     def keydown_events(self, event):
+        if event.key == pygame.K_a:
+            self.counter_rotating = True
+
+        if event.key == pygame.K_d:
+            self.rotating = True
+
         if event.key == pygame.K_q:
             pygame.quit(), quit()
+
+
+    def keyup_events(self, event):
+        self.counter_rotating = False
+        self.rotating = False
 
 
     """ UPDATES """
 
     def updates(self):
+        #self.fitline.x_intercept()
         self.fitline.move(self.moving)
-        self.fitline.rotate(self.rotating, self.reverse_rotating)
+        self.fitline.rotate(self.rotating, self.counter_rotating, self.super_rotating)
+        self.fitline.update_RSS(self.arr)
         self.draw()
 
 
     def draw(self):
-        #self.plot.draw(self.arr) ## Turn off for trig stuff
+        self.plot.draw(self.arr)
         self.fitline.draw()
         self.update_screen()
 
@@ -65,19 +86,10 @@ class Main(PygameBasics):
     """ MAIN """
     def main(self):
 
-        # self.arr = np.load('data/ecommerce.npy')
-        #
-        # MIT = pygame.image.load('mit.jpg')
-        # degrees = 0
+        self.arr = np.load('data/ecommerce.npy')
 
         while True:
             self.win.fill(self.set.white)
-
-            # degrees += -1
-            # rotated = pygame.transform.rotate(MIT, degrees)
-            # self.win.blit(rotated, (800, 200))
-            # pygame.display.flip()
-
             self.set.clock.tick(self.set.FPS)
             self.events()
             self.updates()

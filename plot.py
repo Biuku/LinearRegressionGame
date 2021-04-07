@@ -14,6 +14,9 @@ class Plot:
         self.set = Settings()
 
     def draw(self, arr):
+
+        ### Draw axes
+
         w, h = 1000, 500
 
         left, top = 200, 100
@@ -21,14 +24,15 @@ class Plot:
 
         zero_zero = (left, bottom)
 
-        pygame.draw.line(self.win, self.set.grey, (left, top), zero_zero, 2)
-        pygame.draw.line(self.win, self.set.grey, zero_zero, (right, bottom), 2)
+        pygame.draw.line(self.win, self.set.light_grey, (left, top), zero_zero, 2)
+        pygame.draw.line(self.win, self.set.light_grey, zero_zero, (right, bottom), 2)
+
+
+        ### Draw array dots
+        c = self.set.light_grey
 
         for pair in arr:
             x = pair[0] + left
             y = pair[1] + top
 
-            pygame.draw.circle(self.win, self.set.blue, (x,y), 2, 0)
-
-
-            
+            pygame.draw.circle(self.win, c, (x, y), 1, 0)
