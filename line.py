@@ -1,4 +1,4 @@
-""" April 7, 2021 """
+""" April 9, 2021 """
 
 
 import pygame
@@ -101,7 +101,6 @@ class FitLine:
 
         #So, y on the line should be start_y + adjacent
         y_on_line = round( start_y + adjacent, 2)
-
 
         return y_on_line
 
