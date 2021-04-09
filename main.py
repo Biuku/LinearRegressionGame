@@ -78,6 +78,7 @@ class Main(PygameBasics):
 
 
     def draw(self):
+        self.win.fill(self.set.white)
         self.plot.draw(self.arr)
         self.fitline.draw()
         self.update_screen()
@@ -86,7 +87,8 @@ class Main(PygameBasics):
     """ MAIN """
     def main(self):
 
-        self.arr = np.load('data/ecommerce.npy')
+        self.arr = np.load('data/ecommerce2.npy')
+        #self.arr = self.plot.configure_data(self.arr)
 
         while True:
             self.win.fill(self.set.white)

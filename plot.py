@@ -12,14 +12,17 @@ class Plot:
         pygame.init()
         self.win = win
         self.set = Settings()
+        self.w = 1500
+        self.h = 750
 
     def draw(self, arr):
 
         ### Draw axes
 
-        w, h = 1000, 500
 
-        left, top = 200, 100
+        w, h = self.w, self.h
+
+        left, top = 120, 100
         right, bottom = left + w, top + h
 
         zero_zero = (left, bottom)
@@ -36,3 +39,16 @@ class Plot:
             y = pair[1] + top
 
             pygame.draw.circle(self.win, c, (x, y), 1, 0)
+
+    def configure_data(self, arr):
+
+        arr = -1*arr
+        return arr
+        
+        x = arr[:,0]
+        x_factor = self.w / x.max()
+        arr[:,0] = arr[:,0] * x_factor
+
+        arr = arr.astype(int)
+
+        return arr

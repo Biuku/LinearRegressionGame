@@ -3,6 +3,7 @@
 
 import pygame
 import math as m
+import random as r
 from setup.settings import Settings
 
 class FitLine:
@@ -11,8 +12,7 @@ class FitLine:
         self.win = win
         self.set = Settings()
 
-
-        self.length = 300
+        self.length = 500
         self.angle = 45 ## 'angle' for trig; 'slope' for regression
         self.mid = [400, 300] ### Line always anchors to mid
 
@@ -21,6 +21,9 @@ class FitLine:
         self.update_points()
 
         self.rss = 0
+        self.vertical_intercepts = []
+        self.chance = [False, False, False, False, False, False, False, False, True]
+        self.y_on_line = []
 
 
     def rotate(self, rotating, counter_rotating, super_rotating):
@@ -67,6 +70,9 @@ class FitLine:
         """
 
         error_lines = []
+
+        self.y_on_line = []
+        self.vertical_intercepts = []
         rss = 0
 
         for pair in arr:
@@ -74,29 +80,32 @@ class FitLine:
             y_on_line = self.x_intercept(x, y)
             rss = y_on_line**2
 
+            self.y_on_line.append((x, y_on_line))
+
+
+            #if r.choice(self.chance):
+            vertical_intercept = [(x,y), (x, y_on_line)]
+            self.vertical_intercepts.append(vertical_intercept)
+
         self.rss = rss
 
-    def x_intercept(self, mx, my):
+
+    def x_intercept(self, x, y):
         start_x, start_y = self.start
         angle = m.radians(self.angle)
 
         """ TRIG APPROACH """
-        opposite = mx - start_x
+        opposite = x - start_x
         hypot = opposite / m.sin(angle)
         adjacent = m.cos(angle) * hypot
 
         #So, y on the line should be start_y + adjacent
         y_on_line = round( start_y + adjacent, 2)
 
+
         return y_on_line
 
-        #self.print_coord( (mx, y_on_line) )
 
-    def get_slope(self):
-        """ Slope = rise/run """
-        x1, y1 = self.start
-        x2, y2 = self.end
-        return (y2 - y1) // (x2 - x1)
 
     def move(self, moving):
         if moving:
@@ -125,13 +134,22 @@ class FitLine:
 
 
     def draw(self):
-        pygame.draw.line(self.win, self.set.grey, tuple(self.start), (self.end), 2)
+        pygame.draw.line(self.win, self.set.grey, tuple(self.start), (self.end), 4)
 
-        ## Start a small circle denoting the mid
+        ## Draw a small circle denoting the mid
         pygame.draw.circle(self.win, self.set.black, self.mid, 6, 0)
 
-        ## Start a temporary circle denoting the start
+        ## Draw a temporary circle denoting the start
         pygame.draw.circle(self.win, self.set.red, self.start, 6, 0)
+
+        ## Draw vertical lines between the error bars and my line
+
+        for dot in self.y_on_line:
+            pygame.draw.circle(self.win, self.set.blue, dot, 1, 0)
+        # for line in self.vertical_intercepts:
+        #         start, end = line
+        #         pygame.draw.line(self.win, self.set.blue, start, end, 1)
+
 
         self.print_coord(self.mid)
 
