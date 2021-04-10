@@ -1,14 +1,5 @@
 """ APRIL 9, 2021 """
 
-"""
-April 9 -- I need to build a normal math graph in pygame
-
-- Ingest normal math data
-- Figure out how to show that (100, 200) is right and above zero
-"""
-
-
-
 import pygame
 import numpy as np
 from setup.settings import Settings
@@ -22,9 +13,7 @@ class Main(PygameBasics):
     def __init__(self):
         pygame.init()
         super().__init__()
-
-        self.arr = np.load('data/basic_arr.npy')
-        self.plot = Plot(self.win, self.arr)
+        self.plot = Plot(self.win)
 
         """ LINE STUFF -- IGNORE FOR NOW """
         self.fitline = FitLine(self.win)
@@ -33,8 +22,8 @@ class Main(PygameBasics):
 
         self.moving = False
         self.rotating = False ## Rotate very slow -- 'd'
-        self.counter_rotating = False ## Rotate very slow -- 'a'
-        self.super_rotating = False ## Rotate very fast -- right-click
+        # self.counter_rotate = False ## Rotate very slow -- 'a'
+        # self.super_rotate = False ## Rotate very fast -- right-click
 
 
     """ EVENTS """
@@ -44,52 +33,46 @@ class Main(PygameBasics):
         self.moving = True
 
     def right_click_events(self):
-        self.super_rotating = True
+        self.rotating = 2 ## Super rotate
 
     def mouse_button_up_events(self):
         self.moving = False
-        self.super_rotating = False
+        self.rotating = False
 
     def keydown_events(self, event):
-        if event.key == pygame.K_a:
-            self.counter_rotating = True
 
         if event.key == pygame.K_d:
-            self.rotating = True
+            self.rotating = 0.1 ## clockwise
+
+        if event.key == pygame.K_a:
+            self.rotating = -0.1 ## Counter clockwise
+
+        if event.key == pygame.K_c:
+            self.fitline.snap_to_centroid()
 
         if event.key == pygame.K_q:
             pygame.quit(), quit()
 
-
     def keyup_events(self, event):
-        self.counter_rotating = False
         self.rotating = False
 
 
     """ UPDATES """
 
     def updates(self):
-        #self.fitline.x_intercept()
-        #self.fitline.move(self.moving)
-        #self.fitline.rotate(self.rotating, self.counter_rotating, self.super_rotating)
-        #self.fitline.update_RSS(self.arr)
+        self.fitline.update(self.moving, self.rotating)
         self.draw()
-
 
     def draw(self):
         self.win.fill(self.set.white)
-        self.plot.draw(self.arr)
-        #self.fitline.draw()
+        self.plot.draw()
+        self.fitline.draw()
         self.update_screen()
 
 
     """ MAIN """
+
     def main(self):
-
-        #self.arr = np.load('data/ecommerce2.npy')
-        #self.arr = np.load('data/basic_arr.npy')
-        #self.arr = self.plot.configure_data(self.arr)
-
         while True:
             self.win.fill(self.set.white)
             self.set.clock.tick(self.set.FPS)

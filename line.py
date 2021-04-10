@@ -1,103 +1,167 @@
-""" April 9, 2021 """
+""" April 11, 2021 """
 
 
 import pygame
 import math as m
 import random as r
-from setup.settings import Settings
+from array_config import ArrayConfig
+from printr import Printr
 
-class FitLine:
+
+class FitLine(ArrayConfig):
     def __init__(self, win):
         pygame.init()
         self.win = win
-        self.set = Settings()
+        super().__init__()
+        self.printr = Printr(self.win, self.set)
 
+        ## Pixel var's
         self.length = 500
-        self.angle = 45 ## 'angle' for trig; 'slope' for regression
-        self.mid = [400, 300] ### Line always anchors to mid
+        self.angle = 25 ## 'angle' for trig; 'slope' for regression
+        self.mid = [700, 500] ### Line always anchors to mid
 
-        self.start = self.mid
-        self.end = self.mid
-        self.update_points()
-
+        ## Array var's
         self.rss = 0
-        self.vertical_intercepts = []
-        self.chance = [False, False, False, False, False, False, False, False, True]
-        self.y_on_line = []
+
+        self.update_end_points()
+        self.get_centroid() ## Centroid in pixels
+
+        ### Tracer
+        self.rotating_line_start = (700, 300)
+        self.rotating_line_angle = 270
 
 
-    def rotate(self, rotating, counter_rotating, super_rotating):
-        speed = 0.1
+    def update(self, moving, rotating):
+        self.move(moving)
+        self.rotate(rotating)
+        self.update_end_points()
+        self.update_RSS()
 
+
+    def move(self, moving):
+        if moving:
+            mx, my = pygame.mouse.get_rel()
+            self.mid[0] += mx
+            self.mid[1] += my
+
+
+    def rotate(self, rotating):
         if rotating:
-            self.angle += speed
-
-        if counter_rotating:
-            self.angle -= speed
-
-        if super_rotating:
-            self.angle += 2
-
-        self.update_points()
+            self.angle += rotating
 
 
-    def update_points(self):
+    def update_end_points(self):
         """ Update the start and end points if line moves/rotates"""
 
         x, y = self.mid
         rads = m.radians(self.angle)
+        opposite_angle = self.angle + 180
+
+        if opposite_angle > 360:
+            opposite_angle -= 360
+
+        opposite_rads = m.radians(opposite_angle)
 
         ## Draw mid to end half of line
-        end_x = x + m.cos(rads) * self.length
-        end_y = y + m.sin(rads) * self.length
+        end_x = x + ( m.cos(rads) * self.length )
+        end_y = y + ( m.sin(rads) * self.length )
         self.end = (end_x, end_y)
 
+        # ## Draw start to mid half of line
+        # start_x = x - ( m.cos(rads) * (self.length) )
+        # start_y = y - ( m.sin(rads) * (self.length) )
+        # self.start = (start_x, start_y)
+
         ## Draw start to mid half of line
-        start_x = x + m.cos(rads) * (-1 * self.length)
-        start_y = y + m.sin(rads) * (-1 * self.length)
+        start_x = x + ( m.cos(opposite_rads) * self.length )
+        start_y = y + ( m.sin(opposite_rads) * self.length )
+
         self.start = (start_x, start_y)
 
 
-    def update_RSS(self, arr):
-        """
-        1. Iterate over all coordinates in np array
-        2. Use slope function to find the y coordinate of the line at that array x coordinate
-            2.5 Add two tuples to a list: the arr (x,y) and the (arr x, line y)
-                - To do -- iterate through this list to build the vertical intercepts
-        3. The difference = the error -- add to a list
-        4. Update the RSS as I go (+=)
-        5. Print RSS on the right -- minimizing this is good
-        """
+    def draw_rotating_line(self):
+        length = 200
+        start = self.rotating_line_start
+        x, y = start
+        self.rotating_line_angle += 1
 
+        ### Draw blue / forward part of line
+        angle = self.rotating_line_angle
+        rads = m.radians(angle)
+
+        forward_x = x + ( m.cos(rads) * length )
+        forward_y = y + ( m.sin(rads) * length )
+        end = (forward_x, forward_y)
+
+        pygame.draw.line(self.win, self.set.blue, start, end, 2)
+
+        ### Draw red / opposite part of line
+        opposite_angle = angle + 180
+
+        if opposite_angle > 360:
+            opposite_angle -= 360
+
+        opposite_rads = m.radians(opposite_angle)
+
+        opposite_x = x + ( m.cos(opposite_rads) * length )
+        opposite_y = y + ( m.sin(opposite_rads) * length )
+        end = (opposite_x, opposite_y)
+
+        pygame.draw.line(self.win, self.set.red, start, end, 2)
+
+
+
+
+    def draw_theoretical_line(self):
+        self.draw_rotating_line()
+        return
+
+
+        """ Tracer -- is everything adding up ???"""
+        start_x, start_y = self.start
+        rads = m.radians(self.angle)
+
+        delta_x = opposite = m.sin(rads) * (self.length // 2)
+        delta_y = adjacent = m.cos(rads) * (self.length // 2)
+
+        end = (start_x + delta_x, start_y + delta_y)
+        start = (start_x , start_y )
+
+        pygame.draw.line(self.win, self.set.blue, start, end, 2)
+
+
+    def update_RSS(self):
         error_lines = []
-
         self.y_on_line = []
         self.vertical_intercepts = []
         rss = 0
 
-        for pair in arr:
+        for pair in self.arr:
             x, y = pair
-            y_on_line = self.x_intercept(x, y)
-            rss = y_on_line**2
 
+            y_on_line = self.x_intercept(x, y)
             self.y_on_line.append((x, y_on_line))
 
-
-            #if r.choice(self.chance):
             vertical_intercept = [(x,y), (x, y_on_line)]
             self.vertical_intercepts.append(vertical_intercept)
+
+            rss = y_on_line**2
 
         self.rss = rss
 
 
+
+
     def x_intercept(self, x, y):
+        """ Supports update_RSS """
+
         start_x, start_y = self.start
-        angle = m.radians(self.angle)
+        rads = m.radians(self.angle)
 
         """ TRIG APPROACH """
         opposite = x - start_x
-        hypot = opposite / m.sin(angle)
-        adjacent = m.cos(angle) * hypot
+        hypot = opposite / m.sin(rads)
+        adjacent = m.cos(rads) * hypot
 
         #So, y on the line should be start_y + adjacent
         y_on_line = round( start_y + adjacent, 2)
@@ -105,63 +169,37 @@ class FitLine:
         return y_on_line
 
 
-
-    def move(self, moving):
-        if moving:
-            mx, my = pygame.mouse.get_rel()
-
-            self.mid[0] += mx
-            self.mid[1] += my
-
-    def printr(self):
-        c = self.set.grey
-        x = self.set.win_w * 0.85 ## lower number --> leftward
-        y = self.set.win_h * 0.07 ## lower number --> upward
-
-        texts = [
-            "Angle: " + str(round(self.angle, 2)) + "°",
-            "RSS: " + str(round(self.rss, 2)),
-            'd = Clockwise',
-            'a = Counter-clockwise',
-            'Right-click = fast clockwise'
-            ]
-        for text in texts:
-
-            printr = self.set.med_font.render(text, True, c)
-            self.win.blit( printr, (x, y) )
-            y += 20
+    def snap_to_centroid(self):
+        self.mid = self.centroid
 
 
     def draw(self):
+        self.draw_theoretical_line()
         pygame.draw.line(self.win, self.set.grey, tuple(self.start), (self.end), 4)
+
+        ### TRACER LINE
 
         ## Draw a small circle denoting the mid
         pygame.draw.circle(self.win, self.set.black, self.mid, 6, 0)
 
-        ## Draw a temporary circle denoting the start
-        pygame.draw.circle(self.win, self.set.red, self.start, 6, 0)
-
         ## Draw vertical lines between the error bars and my line
-
         for dot in self.y_on_line:
             pygame.draw.circle(self.win, self.set.blue, dot, 1, 0)
-        # for line in self.vertical_intercepts:
-        #         start, end = line
-        #         pygame.draw.line(self.win, self.set.blue, start, end, 1)
+
+        for line in self.vertical_intercepts:
+            start, end = line
+            pygame.draw.line(self.win, self.set.blue, start, end, 1)
+
+        self.printr.print_coord(self.mid[0], self.mid[1])
+        self.printr.print_instructions(self.angle, self.rss)
 
 
-        self.print_coord(self.mid)
 
-        self.printr()
+    """ Init stuff """
+    def get_centroid(self):
+        x = self.arr[:,0].mean()
+        y = self.arr[:,1].mean()
 
-    def print_coord(self, coord):
-        ### Draw mid coordinates near mid
-        c = self.set.grey
+        x, y = self.convert_arr_to_pixels([x, y])
 
-        x, y = coord
-        x += 15
-        y -= 20
-
-        text = str(coord)
-        printr = self.set.med_font.render(text, True, c)
-        self.win.blit( printr, (x, y) )
+        self.centroid = [x, y]
