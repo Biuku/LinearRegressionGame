@@ -66,3 +66,43 @@ class Plot(ArrayConfig):
         for i in self.y_scale:
             label_printr(str(round(i, 1)), off_x-40, y)
             y -= self.y_scale_gap
+
+
+
+
+
+    """ TEMP DELETE """
+
+    def draw_rotating_line(self):
+        # self.rotating_line_start = (700, 300)
+        # self.rotating_line_angle = 270
+
+
+        length = 200
+        start = self.rotating_line_start
+        x, y = start
+        self.rotating_line_angle += 1
+
+        ### Draw blue / forward part of line
+        angle = self.rotating_line_angle
+        rads = m.radians(angle)
+
+        forward_x = x + ( m.cos(rads) * length )
+        forward_y = y + ( m.sin(rads) * length )
+        end = (forward_x, forward_y)
+
+        pygame.draw.line(self.win, self.set.blue, start, end, 2)
+
+        ### Draw red / opposite part of line
+        opposite_angle = angle + 180
+
+        if opposite_angle > 360:
+            opposite_angle -= 360
+
+        opposite_rads = m.radians(opposite_angle)
+
+        opposite_x = x + ( m.cos(opposite_rads) * length )
+        opposite_y = y + ( m.sin(opposite_rads) * length )
+        end = (opposite_x, opposite_y)
+
+        pygame.draw.line(self.win, self.set.red, start, end, 2)

@@ -23,23 +23,31 @@ class Printr:
         self.win.blit( text, (x, y) )
 
 
-    def print_instructions(self, angle, rss):
-        x = self.set.win_w * 0.85 ## lower number --> leftward
-        y = self.set.win_h * 0.07 ## lower number --> upward
+    def print_instructions(self, for_angle, opp_angle, rss):
+        x = self.set.win_w * 0.87 ## lower number --> leftward
+        y = self.set.win_h * 0.05 ## lower number --> upward
+        rss = self.format_rss(rss)
 
         texts = [
-            "Angle: " + str(round(angle, 2)) + "°",
-            "RSS: " + str(round(rss, 2)),
-            'c = snap to centroid',
+            "For angle: " + str(round(for_angle, 2)) + "°",
+            "Opp angle: " + str(round(opp_angle, 2)) + "°",
+            "RSS: " + rss,
+            'Click = move',
+            'Right-click = fast clockwise',
             'd = Clockwise',
             'a = Counter-clockwise',
-            'Right-click = fast clockwise'
+            'c = snap to centroid',
             ]
 
         for text in texts:
             print_instructions = self.set.med_font.render(text, True, self.set.grey)
             self.win.blit( print_instructions, (x, y) )
-            y += 20
+            y += 22
+
+    def format_rss(self, rss):
+        if rss:
+            return ("{:,}".format(int(rss)))
+        return str(0)
 
 
 

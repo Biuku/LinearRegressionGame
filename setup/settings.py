@@ -6,7 +6,7 @@ import pygame
 class Settings:
 
     def __init__(self):
-        self.win_w = 1700
+        self.win_w = 1800
         self.win_h = 1000
 
         self.clock = pygame.time.Clock()

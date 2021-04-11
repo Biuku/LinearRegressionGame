@@ -1,4 +1,20 @@
-""" APRIL 9, 2021 """
+""" APRIL 10, 2021 """
+
+"""
+April 10
+1. Rename array_config "array".
+    - I'm inheriting a shared object into separate objects. It's weird.
+    - But ... array is static -- under principles of data science, it could never change.
+        - you'd have to conduct more research
+    - Drawbacks to placing array on top and saying it "has a" line and a plot:
+        - Adds a layer ... messy
+        - Unnecessary -- array is static
+2. Do in array, draw in pixels
+    - Do all math in array units
+    - Then, just before drawing, convert to pixels.
+    - I can't believe how dumb i've been to do math in pixels where y is reversed... unforced error.
+"""
+
 
 import pygame
 import numpy as np
@@ -33,7 +49,7 @@ class Main(PygameBasics):
         self.moving = True
 
     def right_click_events(self):
-        self.rotating = 2 ## Super rotate
+        self.rotating = 3 ## Super rotate
 
     def mouse_button_up_events(self):
         self.moving = False

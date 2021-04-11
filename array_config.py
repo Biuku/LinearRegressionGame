@@ -1,6 +1,6 @@
 """ April 10, 2021 """
 
-""" Background objects are like painted scenery. No functional interactions."""
+
 
 import pygame
 import numpy as np
@@ -15,7 +15,7 @@ class ArrayConfig:
         self.arr = np.load('data/basic_arr.npy')
         #self.arr = np.load('data/ecommerce2.npy')
 
-        self.w, self.h = 1300, 700
+        self.w, self.h = 1200, 700
         self.origin = (200, 850) ## Anchor for everything
 
         self.configure_graph(self.arr)
@@ -37,6 +37,7 @@ class ArrayConfig:
         self.x_scale_factor = self.x_scale_gap / data_scale_unit ## (delta graph scale) / (delta data scale)
 
 
+
         """ Configure y scale """
         y_num_labels = 15
         self.y_scale = np.linspace( (self.y_min), (self.y_max), y_num_labels)
@@ -46,6 +47,7 @@ class ArrayConfig:
         ## Note, additional step needed for y to reverse direction... not handled here
         data_scale_unit = self.y_scale[1] - self.y_scale[0]
         self.y_scale_factor = self.y_scale_gap / data_scale_unit
+
 
 
     def convert_arr_to_pixels(self, pair):
