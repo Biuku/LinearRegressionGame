@@ -1,10 +1,8 @@
 """ April 11, 2021 """
 
-
 import pygame
 import math as m
 import random as r
-
 
 
 class Printr:

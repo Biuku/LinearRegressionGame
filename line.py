@@ -4,11 +4,11 @@
 import pygame
 import math as m
 import random as r
-from array_config import ArrayConfig
-from printr import Printr
+from setup.printr import Printr
+from arr import Arr
 
 
-class FitLine(ArrayConfig):
+class FitLine(Arr):
     def __init__(self, win):
         pygame.init()
         self.win = win
@@ -19,12 +19,12 @@ class FitLine(ArrayConfig):
         self.length = 500
         self.for_angle = 25 ## 'angle' for trig; 'slope' for regression
         self.opp_angle = 205
-        self.mid = [700, 500] ### Line always anchors to mid
+        self.mid = [600, 400]
 
         ## Array var's
         self.update_end_points()
-        self.get_centroid() ## Centroid in pixels
         self.update_RSS()
+
 
 
     def update(self, moving, rotating):
@@ -42,19 +42,19 @@ class FitLine(ArrayConfig):
 
 
     def rotate(self, rotating):
+        def wrap_angle(angle):
+            if angle > 360:
+                return angle - 360
+            return angle
+
         if rotating:
             self.for_angle += rotating
-            self.for_angle = self.reset_angle(self.for_angle)
+            self.for_angle = wrap_angle(self.for_angle)
 
             self.opp_angle = self.for_angle + 180
-            self.opp_angle = self.reset_angle(self.opp_angle)
+            self.opp_angle = wrap_angle(self.opp_angle)
 
             self.update_RSS()
-
-    def reset_angle(self, angle):
-        if angle > 360:
-            return angle - 360
-        return angle
 
 
     def update_end_points(self):
@@ -67,54 +67,40 @@ class FitLine(ArrayConfig):
         ## Update start coordinatese
         start_x = x + ( m.cos(opp_rads) * self.length )
         start_y = y + ( m.sin(opp_rads) * self.length )
-        self.start = (start_x, start_y)
+        self.pixel_start = (start_x, start_y)
 
         ## Update end coords
         end_x = x + ( m.cos(for_rads) * self.length )
         end_y = y + ( m.sin(for_rads) * self.length )
-        self.end = (end_x, end_y)
-
+        self.pixel_end = (end_x, end_y)
 
 
     def snap_to_centroid(self):
-        self.mid = self.centroid
+        self.mid = self.get_centroid()
 
 
     def draw(self):
 
         ### Draw line in two halves
-        pygame.draw.line(self.win, self.set.blue, tuple(self.start), tuple(self.mid), 4)
-        pygame.draw.line(self.win, self.set.red, tuple(self.mid), tuple(self.end), 4)
+        pygame.draw.line(self.win, self.set.blue, tuple(self.pixel_start), tuple(self.mid), 4)
+        pygame.draw.line(self.win, self.set.red, tuple(self.mid), tuple(self.pixel_end), 4)
 
-        ## Draw a small circle denoting the mid
-        pygame.draw.circle(self.win, self.set.black, self.mid, 6, 0)
-
-        ## Draw vertical lines between the error bars and my line
-        #for dot in self.y_on_line:
-        #    pygame.draw.circle(self.win, self.set.blue, dot, 1, 0)
-        self.draw_intercepts()
-
+        #self.draw_intercepts()
         self.printr.print_coord(self.mid[0], self.mid[1])
         self.printr.print_instructions(self.for_angle, self.opp_angle, self.rss)
 
 
     def draw_intercepts(self):
+
         for line in self.vertical_intercepts:
             start, end = line
             start = tuple( self.convert_arr_to_pixels(start) )
             end = tuple( self.convert_arr_to_pixels(end) )
             pygame.draw.line(self.win, self.set.blue, start, end, 1)
 
-
-    """ Init stuff """
-    def get_centroid(self):
-        x = self.arr[:,0].mean()
-        y = self.arr[:,1].mean()
-
-        x, y = self.convert_arr_to_pixels([x, y])
-
-        self.centroid = [x, y]
-
+            ## Draw vertical lines between the error bars and my line
+            #for dot in self.y_on_line:
+            #    pygame.draw.circle(self.win, self.set.blue, dot, 1, 0)
 
 
     """ Regression stuff"""
@@ -147,7 +133,7 @@ class FitLine(ArrayConfig):
     def x_intercept(self, x, y):
         """ Supports update_RSS """
 
-        start_x, start_y = self.start
+        start_x, start_y = self.pixel_start
         rads = m.radians(self.for_angle)
 
         opposite = x - start_x

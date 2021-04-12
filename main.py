@@ -20,10 +20,10 @@ import pygame
 import numpy as np
 from setup.settings import Settings
 from setup.background import Background
+from setup.pygameBasics import PygameBasics
 from plot import Plot
 from line import FitLine
 
-from setup.pygameBasics import PygameBasics
 
 class Main(PygameBasics):
     def __init__(self):
@@ -37,9 +37,7 @@ class Main(PygameBasics):
         self.mxmy = None
 
         self.moving = False
-        self.rotating = False ## Rotate very slow -- 'd'
-        # self.counter_rotate = False ## Rotate very slow -- 'a'
-        # self.super_rotate = False ## Rotate very fast -- right-click
+        self.rotating = False
 
 
     """ EVENTS """
