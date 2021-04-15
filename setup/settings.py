@@ -1,4 +1,4 @@
-""" April 5, 2021 """
+""" April 12, 2021 """
 
 import pygame
 
@@ -8,9 +8,10 @@ class Settings:
     def __init__(self):
         self.win_w = 1800
         self.win_h = 1000
+        self.border_gap = 0.03 ## In percent
 
         self.clock = pygame.time.Clock()
-        self.FPS = 60
+        self.FPS = 120
 
         ### Colours
         self.white, self.black = (255, 255, 255), (0, 0, 0)
@@ -24,7 +25,5 @@ class Settings:
         self.light_grey_object_538 = (221, 221, 221)
 
         ### Fonts
-        self.small_font = pygame.font.SysFont('lucidasans', 10)
+        self.small_font = pygame.font.SysFont('lucidasans', 11)
         self.med_font = pygame.font.SysFont('lucidasans', 12)
-
-        ### Lookups

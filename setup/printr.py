@@ -1,4 +1,4 @@
-""" April 11, 2021 """
+""" April 12, 2021 """
 
 import pygame
 import math as m
@@ -12,17 +12,15 @@ class Printr:
         self.set = set
 
 
-    def print_coord(self, x, y):
-        # text = str( (arr[:,0].mean(), arr[:,1].mean()) )
-        text = str( (x, y) )
-        text = self.set.med_font.render(text, True, self.set.grey)
-        x += 15
-        y -= 20
+    def coord_printr(self, data, x, y, c):
+        text = self.set.small_font.render(data, True, c)
         self.win.blit( text, (x, y) )
 
 
-    def print_instructions(self, for_angle, opp_angle, rss):
-        x = self.set.win_w * 0.87 ## lower number --> leftward
+
+    def print_instructions(self, for_angle, opp_angle, rss, rss_tracer):
+        # x = self.set.win_w * 0.87 ## lower number --> leftward
+        x = self.set.win_w * 0.8 ## lower number --> leftward
         y = self.set.win_h * 0.05 ## lower number --> upward
         rss = self.format_rss(rss)
 
@@ -34,7 +32,11 @@ class Printr:
             'Right-click = fast clockwise',
             'd = Clockwise',
             'a = Counter-clockwise',
-            'c = snap to centroid',
+            'c = Snap to centroid',
+            't = Toggle pixel/array units',
+            'i = Toggle show intercepts',
+            ' ',
+            rss_tracer
             ]
 
         for text in texts:
@@ -49,7 +51,8 @@ class Printr:
 
 
 
-        """ TRACERS """
+
+    """ TRACERS """
 
     def x_data_label_tracer(self, x, off_y):
         """ TRACER """

@@ -2,14 +2,12 @@
 
 import pygame
 from setup.settings import Settings
-from setup.background import Background
 
 class PygameBasics:
     def __init__(self):
         pygame.init()
         self.set = Settings()
         self.win = pygame.display.set_mode((self.set.win_w, self.set.win_h))
-        self.background = Background(self.win)
 
     """ EVENTS """
 
@@ -36,8 +34,19 @@ class PygameBasics:
                 pygame.quit(), quit()
 
 
-    """ UPDATES """
 
-    def update_screen(self):
-        self.background.draw()
-        pygame.display.update()
+    """ Draw background """
+
+    def draw_page_border(self):
+        """ Draw rectangle around the entire page to give it an edge """
+
+        x = self.set.win_w * self.set.border_gap
+        y = self.set.win_h * self.set.border_gap
+
+        w =  self.set.win_w * (1 - (2 * self.set.border_gap))
+        h = self.set.win_h * (1 - (2 * self.set.border_gap))
+
+        c = self.set.light_grey
+        thick = 3
+
+        pygame.draw.rect(self.win, c, pygame.Rect(x, y, w, h), thick)
