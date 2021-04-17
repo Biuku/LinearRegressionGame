@@ -57,7 +57,8 @@ class Plot(Arr):
     def draw_axes(self):
         c = self.set.light_grey
         x, y = self.false_axes_origin
-        right, top = x + self.w, y - self.h
+        right = x + self.false_axis_w
+        top = y - self.false_axis_h
 
         pygame.draw.line(self.win, c, (x, y), (x, top), 2)
         pygame.draw.line(self.win, c, (x, y), (right, y), 2)
@@ -77,7 +78,7 @@ class Plot(Arr):
 
             ### Draw labels
             offset_x = pixel_x - 12
-            arr_label = str( round(self.x_scale[i], 1) )
+            arr_label = str( round(self.arr_x_scale[i], 1) )
             pixel_label = str( int(self.pixel_x_scale[i]) )
 
             self.printr.coord_printr(arr_label, offset_x, false_y + 10, self.set.black)
@@ -96,7 +97,7 @@ class Plot(Arr):
 
                 ### Draw labels
                 offset_y = pixel_y - 15
-                arr_label = str( round(self.y_scale[i], 1) )
+                arr_label = str( round(self.arr_y_scale[i], 1) )
                 pixel_label = str( int(self.pixel_y_scale[i]) )
 
                 self.printr.coord_printr(arr_label, false_x - 40, offset_y, self.set.black)

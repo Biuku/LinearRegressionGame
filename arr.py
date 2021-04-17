@@ -11,15 +11,14 @@ class Arr:
         pygame.init()
         self.set = Settings()
 
-        ## Graph data = "False" data
-        """
-        The axes lines are drawn down-left from the actual origin of the data.
-        Because this is a scatterplot it doesn't matter, so long as the labels are correct
-        """
-        self.w, self.h = 1400, 750
+        ## Fundamental anchors -- directly equate to the arr min and max
         self.pixel_origin = (200, 850)
+        self.pixel_w = 1400
+        self.pixel_h = 700
 
-        self.false_axes_origin = self.get_false_axes_origin() ## Shift the drawn axes lines down_left
+        ## How many labels to divide each axis into
+        self.x_num_labels = 17 ## Gives shorter floats
+        self.y_num_labels = 15
 
         ### Pixel units
         self.configure_pixel_scale()
@@ -29,69 +28,90 @@ class Arr:
         self.configure_arr()
         self.configure_arr_scale()
 
+
         ### Agnostic units
+        self.configure_conversion_factor()
         self.get_centroid()
+        self.configure_false_axes()
 
 
     """ CONFIGURATION STUFF """
 
+    ### PIXELS
     def configure_pixel_scale(self):
+
+        # Set pixel min/max
         self.pixel_x_min, self.pixel_y_max = self.pixel_origin
-
-        ## Configure pixel lengths
-        self.pixel_x_len = self.w - 100
-        self.pixel_y_len = self.h - 75
-
-        self.pixel_x_max = self.pixel_x_min + self.pixel_x_len
-        self.pixel_y_min = self.pixel_y_max - self.pixel_y_len
-
-        self.x_num_labels = 20
-        self.y_num_labels = 15
+        self.pixel_x_max = self.pixel_x_min + self.pixel_w
+        self.pixel_y_min = self.pixel_y_max - self.pixel_h
 
         self.pixel_x_scale = np.linspace( (self.pixel_x_min), (self.pixel_x_max), self.x_num_labels )
         self.pixel_y_scale = np.linspace( (self.pixel_y_max), (self.pixel_y_min), self.y_num_labels )
 
-        self.pixel_x_scale_unit = self.pixel_x_len / self.x_num_labels
-        self.pixel_y_scale_unit = self.pixel_y_len / self.y_num_labels
 
-
+    ### ARR
     def configure_arr(self):
+        # Set arr min/max
+        x, y = self.arr[:,0], self.arr[:,1]
+        self.arr_x_min, self.arr_x_max = x.min(), x.max()
+        self.arr_y_min, self.arr_y_max = y.min(), y.max()
 
-        self.x_min = self.arr[:,0].min()
-        self.y_min = self.arr[:,1].min()
-        self.arr_origin = (self.x_min, self.y_min)
-
-        self.x_max = self.arr[:,0].max()
-        self.y_max = self.arr[:,1].max()
-
-        ## Configure arr lengths
-        self.x_len = self.x_max - self.x_min
-        self.y_len = self.y_max - self.y_min
-
+        self.arr_origin = (self.arr_x_min, self.arr_y_min)
 
     def configure_arr_scale(self):
-        self.x_scale = np.linspace( (self.x_min), (self.x_max), self.x_num_labels )
-        self.y_scale = np.linspace( (self.y_min), (self.y_max), self.y_num_labels )
+        self.arr_x_scale = np.linspace( self.arr_x_min, self.arr_x_max, self.x_num_labels )
+        self.arr_y_scale = np.linspace( self.arr_y_min, self.arr_y_max, self.y_num_labels )
 
-        self.x_scale_unit = self.x_scale[1] - self.x_scale[0]
-        self.y_scale_unit = self.y_scale[1] - self.y_scale[0]
-
+        #print(self.pixel_y_scale)
 
     """ CONVERSION STUFF """
+
+    def configure_conversion_factor(self):
+        ## X
+        # Pick the element from the same index location in each scale
+        arr_x = self.arr_x_scale[7]
+        pixel_x = self.pixel_x_scale[7]
+
+        # Zero these
+        arr_x -= self.arr_x_min
+        pixel_x -= self.pixel_x_min
+
+        # Get conversion factor
+        self.x_to_arr = arr_x / pixel_x
+
+
+        # ## Y
+        # # Pick the element from the same index location in each scale
+        arr_y = self.arr_y_scale[7]
+        pixel_y = self.pixel_y_scale[7]
+
+        # # Zero these
+        arr_y -= self.arr_y_min
+        pixel_y = self.pixel_y_max - pixel_y
+
+        ## Get ratio of array coord to pixel coord.
+        self.y_to_arr = arr_y / pixel_y
+
+
+        # Reverse direction = inverse
+        self.x_to_pixels = 1 / self.x_to_arr
+        self.y_to_pixels = 1 / self.y_to_arr
+
 
     def convert_to_arr(self, pixel_coords):
         x, y = pixel_coords
 
-        ## Find x, y values relative to pixel origin
-        x = x - self.pixel_x_min
+        ## Zero the passed coord
+        x -= self.pixel_x_min
         y = self.pixel_y_max - y
 
-        ## Scale those values to be array units
-        x, y = self.to_arr(x, y)
+        ### Convert
+        x *= self.x_to_arr
+        y *= self.y_to_arr
 
-        ## Shift the values relative to arr origin
-        x += self.x_min
-        y += self.y_min
+        ### Add back the zero coord in arr units
+        x += self.arr_x_min
+        y += self.arr_y_min
 
         return x, y
 
@@ -100,31 +120,18 @@ class Arr:
         x, y = arr_coords
 
         ## Find x, y values relative to arr origin
-        x -= self.x_min
-        y -= self.y_min
+        x -= self.arr_x_min
+        y += self.arr_y_min
 
         ## Scale those values to be pixels
-        x, y = self.to_pixels(x, y)
+        x *= self.x_to_pixels
+        y *= self.y_to_pixels
 
-        ## Shift the values relative to pixel origin
-        x = x + self.pixel_x_min
-        y = self.pixel_y_max - y
+        ## Find x, y values relative to arr origin
+        x += self.pixel_x_min
+        y -= self.pixel_y_min
 
         return int(x), int(y)
-
-
-    def to_pixels(self, x, y):
-        x *= (self.pixel_x_scale_unit / self.x_scale_unit) ## (delta pixel scale) / (delta arr scale)
-        y *= (self.pixel_y_scale_unit / self.y_scale_unit)
-
-        return x, y
-
-
-    def to_arr(self, x, y):
-        x *= (self.x_scale_unit / self.pixel_x_scale_unit)
-        y *= (self.y_scale_unit / self.pixel_y_scale_unit)
-
-        return x, y
 
 
     def get_centroid(self):
@@ -136,11 +143,11 @@ class Arr:
 
 
     """ UTILITY """
+    def configure_false_axes(self):
+        buffer = 50 ## pixels -- in all direction
 
-    def get_false_axes_origin(self):
-        # self.x_false_gap_pixels = self.set.win_w * (self.set.border_gap + 0.05)
-        # self.y_false_gap_pixels = self.set.win_h * (self.set.border_gap + 0.07)
         x, y = self.pixel_origin
 
-        # return (self.x_false_gap_pixels, self.set.win_h - self.y_false_gap_pixels)
-        return (x-50, y + 50)
+        self.false_axes_origin = (x - buffer, y + buffer)
+        self.false_axis_w = self.pixel_w + (2*buffer)
+        self.false_axis_h = self.pixel_h + (2*buffer)

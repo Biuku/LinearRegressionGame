@@ -6,7 +6,6 @@ import math as m
 import random as r
 from setup.printr import Printr
 from arr import Arr
-#from regression import Regression
 
 
 class FitLine(Arr):
@@ -23,18 +22,15 @@ class FitLine(Arr):
         self.update_opp_angle()
 
         ## Pixel units
-        self.pixel_mid = [200, 600]
+        self.pixel_mid = [200, 870]
         self.pixel_length = 300
         self.update_end_points()
 
         ## Array units
-        self.arr_length = 10 ## TBD
         self.arr_start = (69, 420)
         self.arr_mid = (69, 420)
-        self.update_RSS()
-
-        ## Tracer -- delete
-        self.tracer_text = ""
+        self.rss = 1
+        #self.update_RSS()
 
 
     """ Main control """
@@ -52,8 +48,8 @@ class FitLine(Arr):
 
     def draw(self):
         self.draw_line()
-        self.draw_intercepts()
-        self.printr.print_instructions(self.degrees, self.opp_angle, self.rss, self.tracer_text)
+        #self.draw_intercepts()
+        self.printr.print_instructions(self.degrees, self.opp_angle, self.rss)
 
 
     """ UPDATES """
@@ -69,7 +65,7 @@ class FitLine(Arr):
         opp = m.sin(rads) * hyp
         adj = m.cos(rads) * hyp
 
-        ## Apply deltas to mid coord
+        ## Get start/end by applying deltas to mid coord
         start_x = midx + adj
         start_y = midy - opp
 
@@ -86,7 +82,7 @@ class FitLine(Arr):
             self.pixel_mid[0] += mx
             self.pixel_mid[1] += my
 
-            self.update_RSS()
+            #self.update_RSS()
 
 
     def snap_to_centroid(self):
@@ -100,7 +96,7 @@ class FitLine(Arr):
             self.degrees = self.wrap_angle(self.degrees)
 
             self.update_opp_angle()
-            self.update_RSS()
+            #self.update_RSS()
 
 
     def update_opp_angle(self):
@@ -153,59 +149,7 @@ class FitLine(Arr):
                 i == 0.1
 
         sol = (x2-x1)**2 + (y2-y1)**2
-        """ Tracer """
-        self.tracer_text = "x1: " + str(x1) + "  | y1: " + str(y1) + " | x2: " + str(x2) + " | y2: " + str(y2) + " | Euclid: " + str(sol)
-
-
         if sol != 0:
             m.sqrt(sol)
 
         return sol
-
-
-    """ Regression stuff """
-    """ Consider moving to other file """
-
-    def update_RSS(self):
-        error_lines = []
-        self.arr_y_on_line = []
-        self.arr_vertical_intercepts = []
-        rss = 0
-
-        for coord in self.arr:
-            x, y = coord
-
-            y_on_line = self.y_intercept(x, y)
-            self.arr_y_on_line.append( y_on_line )
-
-            intercept = [(x,y), y_on_line]
-            self.arr_vertical_intercepts.append(intercept)
-
-            rss += self.get_euclid(intercept[0], intercept[1])
-
-        self.rss = rss
-
-
-    def draw_intercepts(self):
-        if self.show_intercepts:
-
-            self.printr.coord_printr("Intercepts Tracer", 1600, 400, self.set.red)
-
-            for intercept in self.arr_y_on_line:
-                x, y = self.convert_to_pixels(intercept)
-                pygame.draw.circle(self.win, self.set.red, (x, y), 12, 0)
-
-                print( intercept, (x,y) )
-
-
-    def y_intercept(self, x2, y2):
-        """ Supports update_RSS """
-
-        x1, y1 = self.arr_start
-        rads = m.radians(self.degrees)
-
-        adj = x2 - x1
-        hyp = adj / m.cos(rads)
-        opp = m.sin(rads) * hyp
-
-        return [int(x2), int(y1 - opp)]
