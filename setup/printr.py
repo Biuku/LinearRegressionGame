@@ -18,15 +18,16 @@ class Printr:
 
 
 
-    def print_instructions(self, for_angle, opp_angle, rss):
+    def print_instructions(self, b0, slope, angle, rss):
         # x = self.set.win_w * 0.87 ## lower number --> leftward
         x = self.set.win_w * 0.8 ## lower number --> leftward
         y = self.set.win_h * 0.05 ## lower number --> upward
         rss = self.format_rss(rss)
 
         texts = [
-            "For angle: " + str(round(for_angle, 2)) + "°",
-            "Opp angle: " + str(round(opp_angle, 2)) + "°",
+            "Y intercept: " + str(round(b0, 4)),
+            "Slope: " + str(round(slope, 4)),
+            "Angle: " + str(round(angle, 2)) + "°",
             "RSS: " + rss,
             'Click = move',
             'Right-click = fast clockwise',

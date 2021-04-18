@@ -18,7 +18,7 @@ class FitLine(Arr):
 
         ## Agnostic units
         self.degrees = 60
-        self.update_opp_angle()
+        self.slope = 1
 
         ## Pixel units
         self.pixel_mid = [400, 400]
@@ -26,10 +26,13 @@ class FitLine(Arr):
         self.update_end_points()
 
         ## Array units
-        self.arr_start = (69, 420)
-        self.arr_mid = (69, 420)
+        self.arr_start = (1, 1)
+        self.arr_mid = (1, 1)
+        self.b0 = 1
         self.rss = 1
         self.update_RSS()
+
+        self.temp_flag = 0 # Delete -- for printing different b0 calculations
 
 
     """ Main control """
@@ -40,6 +43,7 @@ class FitLine(Arr):
         self.snap_to_centroid(centroid)
 
         self.update_end_points()
+        self.update_coefficients()
         self.convert()
 
     def update_display(self, show_intercepts):
@@ -49,10 +53,31 @@ class FitLine(Arr):
     def draw(self):
         self.draw_line()
         self.draw_intercepts()
-        self.printr.print_instructions(self.degrees, self.opp_angle, self.rss)
+        self.printr.print_instructions(self.b0, self.slope, self.degrees, self.rss)
 
 
     """ UPDATES """
+
+    def update_coefficients(self):
+        ### Note, I proved in Jupyter sandbox 4 that pixel distances do not equate to arr distances.
+        # But I can find pixel points from arr points, and vice-versa... although this doesn't quite hold either.
+
+        """ Slope = rise/run """
+        x1, y1 = self.arr_mid
+        x2, y2 = self.arr_start
+        if x2-x1 != 0:
+            self.slope = (y2 - y1) / (x2-x1)
+
+        """ y intercept: b0 = y - b1*x """
+        self.b0 = y2 - self.slope*x2
+        b0_mid = y1 - self.slope*x1
+
+        ### Tracer ###
+        self.temp_flag += 1
+        if self.temp_flag == 3:
+            print("\nStart b0: ", self.b0, "\nMid b0:   ", b0_mid)
+            print("\nb1: ", self.slope, "\n")
+
 
     def move(self, moving):
         if moving:
@@ -69,25 +94,18 @@ class FitLine(Arr):
 
     """ Rotating stuff """
     def rotate(self, rotating):
+        def wrap_angle(angle):
+            if angle > 360:
+                return 1
+            if angle < 0:
+                return 360
+            return angle
+
         if rotating:
             self.degrees += rotating
-            self.degrees = self.wrap_angle(self.degrees)
+            self.degrees = wrap_angle(self.degrees)
 
-            self.update_opp_angle()
             self.update_RSS()
-
-
-    def update_opp_angle(self):
-        self.opp_angle = self.degrees + 180
-        self.opp_angle = self.wrap_angle(self.opp_angle)
-
-
-    def wrap_angle(self, angle):
-        if angle > 360:
-            return 0
-        if angle < 1:
-            return 360
-        return angle
 
 
     def update_end_points(self):
@@ -108,7 +126,6 @@ class FitLine(Arr):
         end_x = int(midx + adj)
         end_y = int(midy - opp) # account for pygame negative stupidity
 
-
         self.pixel_start = [start_x, start_y]
         self.pixel_end = [end_x, end_y]
 
@@ -117,8 +134,62 @@ class FitLine(Arr):
         self.arr_start = self.convert_to_arr(self.pixel_start)
         self.arr_mid = self.convert_to_arr(self.pixel_mid)
 
-    """ Drawing """
+
+
+    """ Regression stuff """
+    """ Consider moving to other file """
+
+    def update_RSS(self):
+        self.arr_y_on_line = []
+        self.rss = 0
+
+        for coord in self.arr:
+            x, y = coord
+
+            y_on_line = self.b0 + x*self.slope ## line equation
+
+            error = y - y_on_line
+            self.rss += error**2
+
+            intercept_coord = [x, y_on_line]
+            self.arr_y_on_line.append( intercept_coord )
+
+
+
+
+    # def error(self, observation):
+    #     """ Supports update_RSS """
+    #
+    #     x1, y1 = self.arr_start
+    #     x2, y2 = observation
+    #     theta = m.radians(self.degrees)
+    #
+    #     adj = x2 - x1
+    #     opp = m.tan(theta) * adj
+    #
+    #     y_on_line = (x2, y1 + opp)
+    #     self.arr_y_on_line.append( y_on_line )
+    #
+    #
+    #     error = self.get_euclid(observation, y_on_line)
+    #
+    #     return error
+
+
+
+
+    """ DRAWING """
+    """ DRAWING """
+    """ DRAWING """
+    """ DRAWING """
+
+
+
+
+
+
     def draw_line(self):
+
         c1 = self.set.light_grey_object_538
         c2 = self.set.object2_538
         pygame.draw.line(self.win, c1, tuple(self.pixel_start), tuple(self.pixel_end), 2)
@@ -160,7 +231,6 @@ class FitLine(Arr):
     def draw_intercepts(self):
         if self.show_intercepts:
             self.printr.coord_printr("Intercepts Tracer", 1600, 400, self.set.red)
-            return ## Temp
 
             for intercept in self.arr_y_on_line:
                 arr_x, arr_y = intercept
@@ -174,62 +244,3 @@ class FitLine(Arr):
                 px_y -= 11
                 self.printr.coord_printr(arr_text, px_x+15, px_y, self.set.grey)
                 self.printr.coord_printr(pixel_text, px_x+15, px_y+15, self.set.blue)
-
-
-    """ Regression stuff """
-    """ Consider moving to other file """
-
-    def update_RSS(self):
-        self.arr_y_on_line = []
-        rss = 0
-
-        for coord in self.arr:
-            x, y = coord
-
-            error = self.error(coord)
-            rss += error**2
-
-        self.rss = rss
-
-
-    def error(self, observation):
-        """ Supports update_RSS """
-
-        x1, y1 = self.arr_start
-        x2, y2 = observation
-        theta = m.radians(self.degrees)
-
-        adj = x2 - x1
-        opp = m.tan(theta) * adj
-
-        y_on_line = (x2, y1 + opp)
-        self.arr_y_on_line.append( y_on_line )
-
-        ### TRACER ###
-        px_x, px_y = self.convert_to_pixels(y_on_line)
-        pygame.draw.circle(self.win, self.set.red, (px_x, px_y), 6, 0)
-
-
-        error = self.get_euclid(observation, y_on_line)
-
-        return error
-
-
-
-
-
-    """ Utility """
-
-    def get_euclid(self, start, fin):
-        x1, y1 = start
-        x2, y2 = fin
-
-        for i in [x1, y1, x2, y2]:
-            if i == 0:
-                i == 0.1
-
-        sol = (x2-x1)**2 + (y2-y1)**2
-        if sol != 0:
-            m.sqrt(sol)
-
-        return sol

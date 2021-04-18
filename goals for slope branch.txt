@@ -1,0 +1,26 @@
+Getting stuck using trig. Also, trig is not how you do regression... though it's good in areas of pygame. Going to switch to using y = mx + b type math.
+
+
+** A. Get the line equation for my line **
+
+1. Implement 'slope' (b1) calculation -- keep degrees in the background, but swap out printr to show slope instead.
+	- Calculate slope in arr, not pixels!
+	- Well, maybe cross-check by doing both.  I think it should be the same.
+
+2. Find y intercept (b0)
+	- Use slope and any point on the line (mid):
+	- y = b0 + b1·x
+	- b0 = y - b1·x
+
+^^^^^^^^ DONE DONE DONE DONE DONE ^^^^^^^^^^^^^^^
+
+
+
+** B. Use line equation to find vertical distances ***
+	- Imagine an infinitely long version of my line -- that's the line equation
+	- Line equation makes it easy to calculate delta y from an observation point to the imaginary long line.
+		- Could even draw these.
+	- y = b0 + b1·x
+
+
+
