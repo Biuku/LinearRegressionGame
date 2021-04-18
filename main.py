@@ -17,11 +17,14 @@ class Main(PygameBasics):
         self.fitline = FitLine(self.win)
         self.plot = Plot(self.win)
 
-        ## Flags
+        ## Movement flags
         self.moving = False
         self.rotating = False
-        self.arr_units_flag = False
-        self.show_intercepts_flag = False
+        self.snap_to_centroid = False
+
+        ## Display flags
+        self.show_intercepts = False
+
 
 
     """ EVENTS """
@@ -46,13 +49,10 @@ class Main(PygameBasics):
             self.rotating = -0.1 ## trig degrees are counter-clockwise. negative = clockwise
 
         if event.key == pygame.K_c:
-            self.fitline.snap_to_centroid()
-
-        if event.key == pygame.K_t:
-            self.arr_units_flag = not self.arr_units_flag
+            self.snap_to_centroid = True
 
         if event.key == pygame.K_i:
-            self.show_intercepts_flag = not self.show_intercepts_flag
+            self.show_intercepts = not self.show_intercepts
 
         if event.key == pygame.K_q:
             pygame.quit(), quit()
@@ -65,8 +65,11 @@ class Main(PygameBasics):
     """ UPDATES """
 
     def updates(self):
-        self.fitline.update(self.moving, self.rotating, self.arr_units_flag, self.show_intercepts_flag)
+        self.fitline.update_motion(self.moving, self.rotating, self.snap_to_centroid)
+        self.fitline.update_display(self.show_intercepts)
         self.draw()
+
+        self.snap_to_centroid = False
 
 
     def draw(self):

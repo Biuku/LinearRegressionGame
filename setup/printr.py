@@ -33,7 +33,6 @@ class Printr:
             'd = Clockwise',
             'a = Counter-clockwise',
             'c = Snap to centroid',
-            't = Toggle pixel/array units',
             'i = Toggle show intercepts',
             ' ',
             ]

@@ -70,28 +70,19 @@ class Arr:
         ## X
         # Pick the element from the same index location in each scale
         arr_x = self.arr_x_scale[7]
+        arr_y = self.arr_y_scale[7]
         pixel_x = self.pixel_x_scale[7]
+        pixel_y = self.pixel_y_scale[7]
 
         # Zero these
         arr_x -= self.arr_x_min
+        arr_y -= self.arr_y_min
         pixel_x -= self.pixel_x_min
+        pixel_y = self.pixel_y_max - pixel_y
 
         # Get conversion factor
         self.x_to_arr = arr_x / pixel_x
-
-
-        # ## Y
-        # # Pick the element from the same index location in each scale
-        arr_y = self.arr_y_scale[7]
-        pixel_y = self.pixel_y_scale[7]
-
-        # # Zero these
-        arr_y -= self.arr_y_min
-        pixel_y = self.pixel_y_max - pixel_y
-
-        ## Get ratio of array coord to pixel coord.
         self.y_to_arr = arr_y / pixel_y
-
 
         # Reverse direction = inverse
         self.x_to_pixels = 1 / self.x_to_arr
@@ -121,7 +112,7 @@ class Arr:
 
         ## Find x, y values relative to arr origin
         x -= self.arr_x_min
-        y += self.arr_y_min
+        y -= self.arr_y_min
 
         ## Scale those values to be pixels
         x *= self.x_to_pixels
@@ -129,9 +120,9 @@ class Arr:
 
         ## Find x, y values relative to arr origin
         x += self.pixel_x_min
-        y -= self.pixel_y_min
+        y = self.pixel_y_max - y
 
-        return int(x), int(y)
+        return int(x), int(y) ## Pixel values should be int
 
 
     def get_centroid(self):
