@@ -32,6 +32,8 @@ class Arr:
         ### Agnostic units
         self.configure_conversion_factor()
         self.get_centroid()
+
+        self.buffer = 50
         self.configure_false_axes()
 
         self.regression()
@@ -167,10 +169,9 @@ class Arr:
 
     """ UTILITY """
     def configure_false_axes(self):
-        buffer = 50 ## pixels -- in all direction
 
         x, y = self.pixel_origin
 
-        self.false_axes_origin = (x - buffer, y + buffer)
-        self.false_axis_w = self.pixel_w + (2*buffer)
-        self.false_axis_h = self.pixel_h + (2*buffer)
+        self.false_axes_origin = (x - self.buffer, y + self.buffer)
+        self.false_axis_w = self.pixel_w + (2 * self.buffer)
+        self.false_axis_h = self.pixel_h + (2 * self.buffer)

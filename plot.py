@@ -13,6 +13,7 @@ class Plot(Arr):
         self.win = win
         self.printr = Printr(self.win, self.set)
         self.show_centroid = False
+        self.c0 = self.set.grey
         self.c1 = self.set.light_grey ## Arr coord's
         self.c2 = self.set.light_blue ## Pixel coords
 
@@ -33,16 +34,13 @@ class Plot(Arr):
 
         for arr_coord in self.arr:
             px_coord = self.convert_to_pixels(arr_coord)
-            pygame.draw.circle(self.win, self.set.blue, px_coord, 4, 0)
-            self.draw_arr_coord(arr_coord, px_coord)
+            pygame.draw.circle(self.win, self.c2, px_coord, 5, 0)
 
+            x, y = px_coord
+            arr_text = str( (round(arr_coord[0], 1), round(arr_coord[1], 1) ) )
+            pixel_text = str( (x, y) )
 
-    def draw_arr_coord(self, arr, px):
-        x, y = px
-        arr_text = str( (round(arr[0], 1), round(arr[1], 1) ) )
-        pixel_text = str( (x, y) )
-
-        self.printr.coord_printr(arr_text, x-45, y, self.c1)
+            self.printr.coord_printr(arr_text, x-35, y+5, self.c2)
 
 
     def draw_centroid(self):
@@ -89,10 +87,10 @@ class Plot(Arr):
             ### Draw labels
             offset_x = pixel_x - 12
             arr_label = str( round(self.arr_x_scale[i], 1) )
-            pixel_label = str( int(self.pixel_x_scale[i]) )
+            #pixel_label = str( int(self.pixel_x_scale[i]) )
 
-            self.printr.coord_printr(arr_label, offset_x, y + 10, self.set.light_grey)
-            self.printr.coord_printr(pixel_label, offset_x, y + 25, self.set.blue)
+            self.printr.coord_printr(arr_label, offset_x, y + 10, self.c0)
+            #self.printr.coord_printr(pixel_label, offset_x, y + 25, self.set.blue)
 
 
     def draw_y_axes_labels(self):
@@ -107,9 +105,9 @@ class Plot(Arr):
                 pygame.draw.circle(self.win, self.set.grey, (x+1, pixel_y), 2, 0)
 
                 ### Draw labels
-                offset_y = pixel_y - 15
+                offset_y = pixel_y - 9
                 arr_label = str( round(self.arr_y_scale[i], 1) )
-                pixel_label = str( int(self.pixel_y_scale[i]) )
+                #pixel_label = str( int(self.pixel_y_scale[i]) )
 
-                self.printr.coord_printr(arr_label, x - 40, offset_y, self.set.light_grey)
-                self.printr.coord_printr(pixel_label, x - 40, offset_y + 15, self.set.blue)
+                self.printr.coord_printr(arr_label, x - 30, offset_y, self.c0)
+                #self.printr.coord_printr(pixel_label, x - 40, offset_y + 15, self.set.blue)

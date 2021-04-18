@@ -43,7 +43,7 @@ class DrawLine:
 
         y -= 11
         self.printr.coord_printr(arr_text, x+15, y, self.c1)
-        self.printr.coord_printr(pixel_text, x+15, y+15, self.c2)
+        #self.printr.coord_printr(pixel_text, x+15, y+15, self.c2)
 
 
 

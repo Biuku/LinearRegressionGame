@@ -19,8 +19,8 @@ class Printr:
 
 
     def print_instructions(self, b0, b1, SSE, y_int, slope, sse):
-        x = self.set.win_w * 0.85 ## lower number --> leftward
-        y = self.set.win_h * 0.05 ## lower number --> upward
+        x = self.set.win_w * 0.86 ## lower number --> leftward
+        y = self.set.win_h * 0.06 ## lower number --> upward
 
         texts = [
             'INSTRUCTIONS',
