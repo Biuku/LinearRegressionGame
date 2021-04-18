@@ -18,28 +18,34 @@ class Printr:
 
 
 
-    def print_instructions(self, b0, slope, angle, rss):
-        # x = self.set.win_w * 0.87 ## lower number --> leftward
-        x = self.set.win_w * 0.8 ## lower number --> leftward
+    def print_instructions(self, b0, b1, SSE, y_int, slope, sse):
+        x = self.set.win_w * 0.85 ## lower number --> leftward
         y = self.set.win_h * 0.05 ## lower number --> upward
-        rss = self.format_rss(rss)
 
         texts = [
-            "Y intercept: " + str(round(b0, 4)),
-            "Slope: " + str(round(slope, 4)),
-            "Angle: " + str(round(angle, 2)) + "°",
-            "RSS: " + rss,
-            'Click = move',
-            'Right-click = fast clockwise',
-            'd = Clockwise',
-            'a = Counter-clockwise',
-            'c = Snap to centroid',
-            'i = Toggle show intercepts',
-            ' ',
+            'INSTRUCTIONS',
+            '  · Click = move',
+            '  · d = Clockwise',
+            '  · a = Counter-clockwise',
+            '  · Right-click = fast clockwise',
+            '  · c = Show centroid',
+            '  · i = Show intercepts',
+            '',
+            'BEST FIT LINE',
+            '  · Y intercept:  ' + str(round(b0, 4)),
+            '  · Slope:  ' + str(round(b1, 4)),
+            '  · SSE: ' + str(round(SSE, 4)),
+            '',
+            'YOUR LINE',
+            "  · Y intercept: " + str(round(y_int, 4)),
+            "  · Slope: " + str(round(slope, 4)),
+            #"  · Angle: " + str(round(angle, 2)) + "°",
+            "  · SSE: " + str(round(sse, 4)),
+            '',
             ]
 
         for text in texts:
-            print_instructions = self.set.med_font.render(text, True, self.set.grey)
+            print_instructions = self.set.small_font.render(text, True, self.set.grey)
             self.win.blit( print_instructions, (x, y) )
             y += 22
 

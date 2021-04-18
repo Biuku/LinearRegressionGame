@@ -1,4 +1,4 @@
-""" April 12, 2021 """
+""" April 18, 2021 """
 
 
 import pygame
@@ -6,6 +6,7 @@ import math as m
 import random as r
 from setup.printr import Printr
 from arr import Arr
+from drawline import DrawLine
 
 
 class FitLine(Arr):
@@ -14,70 +15,52 @@ class FitLine(Arr):
         pygame.init()
         self.win = win
         self.printr = Printr(self.win, self.set)
+        self.drawline = DrawLine(self.win, self.arr)
         self.show_intercepts = False
 
         ## Agnostic units
-        self.degrees = 60
+        self.degrees = 30
         self.slope = 1
 
         ## Pixel units
-        self.pixel_mid = [400, 400]
-        self.pixel_length = 300
+        self.pixel_mid = [800, 400]
+        self.pixel_length = self.pixel_w/2 + 10
         self.update_end_points()
 
         ## Array units
         self.arr_start = (1, 1)
         self.arr_mid = (1, 1)
-        self.b0 = 1
-        self.rss = 1
+        self.y_intercept = 1
         self.update_RSS()
 
-        self.temp_flag = 0 # Delete -- for printing different b0 calculations
 
-
-    """ Main control """
-
-    def update_motion(self, moving, rotating, centroid):
+    def update(self, moving, rotating, show_intercepts):
         self.move(moving)
         self.rotate(rotating)
-        self.snap_to_centroid(centroid)
-
-        self.update_end_points()
-        self.update_coefficients()
-        self.convert()
-
-    def update_display(self, show_intercepts):
         self.show_intercepts = show_intercepts
+
+    def update_coords(self):
+        ## If I move or rotate, recalculate everything ##
+        self.update_end_points()
+        self.convert()
+        self.update_coefficients()
+        self.update_RSS()
 
 
     def draw(self):
-        self.draw_line()
-        self.draw_intercepts()
-        self.printr.print_instructions(self.b0, self.slope, self.degrees, self.rss)
+        ### Draw line ###
+        pixel_points = [self.pixel_start, self.pixel_mid, self.pixel_end]
+        arr_points = [self.arr_start, self.arr_mid]
+        self.drawline.draw_line(pixel_points, arr_points)
+
+        ### Draw intercepts on the line ###
+        intercepts = [self.arr_y_on_line, self.pixel_y_on_line, self.pixels_of_arr]
+        self.drawline.draw_intercepts(self.show_intercepts, intercepts, self.error)
+
+        self.printr.print_instructions(self.b0, self.b1, self.SSE, self.y_intercept, self.slope, self.sse)
 
 
     """ UPDATES """
-
-    def update_coefficients(self):
-        ### Note, I proved in Jupyter sandbox 4 that pixel distances do not equate to arr distances.
-        # But I can find pixel points from arr points, and vice-versa... although this doesn't quite hold either.
-
-        """ Slope = rise/run """
-        x1, y1 = self.arr_mid
-        x2, y2 = self.arr_start
-        if x2-x1 != 0:
-            self.slope = (y2 - y1) / (x2-x1)
-
-        """ y intercept: b0 = y - b1*x """
-        self.b0 = y2 - self.slope*x2
-        b0_mid = y1 - self.slope*x1
-
-        ### Tracer ###
-        self.temp_flag += 1
-        if self.temp_flag == 3:
-            print("\nStart b0: ", self.b0, "\nMid b0:   ", b0_mid)
-            print("\nb1: ", self.slope, "\n")
-
 
     def move(self, moving):
         if moving:
@@ -85,11 +68,8 @@ class FitLine(Arr):
             self.pixel_mid[0] += mx
             self.pixel_mid[1] += my
 
-            self.update_RSS()
+            self.update_coords()
 
-    def snap_to_centroid(self, snapping):
-        if snapping:
-            self.pixel_mid = self.pixel_centroid
 
 
     """ Rotating stuff """
@@ -105,7 +85,7 @@ class FitLine(Arr):
             self.degrees += rotating
             self.degrees = wrap_angle(self.degrees)
 
-            self.update_RSS()
+            self.update_coords()
 
 
     def update_end_points(self):
@@ -122,7 +102,6 @@ class FitLine(Arr):
         ## Get start/end by applying deltas to mid coord
         start_x = int(midx - adj)
         start_y = int(midy + opp)
-
         end_x = int(midx + adj)
         end_y = int(midy - opp) # account for pygame negative stupidity
 
@@ -135,112 +114,33 @@ class FitLine(Arr):
         self.arr_mid = self.convert_to_arr(self.pixel_mid)
 
 
+    def update_coefficients(self):
+        ## Slope
+        x1, y1 = self.arr_mid
+        x2, y2 = self.arr_start
+        if x2-x1 != 0:
+            self.slope = (y2 - y1) / (x2-x1)
 
-    """ Regression stuff """
-    """ Consider moving to other file """
+        ## Y intercept
+        self.y_intercept = y2 - self.slope*x2
+        b0_mid = y1 - self.slope*x1
+
 
     def update_RSS(self):
         self.arr_y_on_line = []
-        self.rss = 0
+        self.pixel_y_on_line = []
+        self.error = []
+        self.sse = 0
 
         for coord in self.arr:
             x, y = coord
 
-            y_on_line = self.b0 + x*self.slope ## line equation
+            y_on_line = self.y_intercept + x*self.slope ## line equation
 
-            error = y - y_on_line
-            self.rss += error**2
+            error = (y - y_on_line)**2
+            self.sse += error
+            self.error.append(error)
 
             intercept_coord = [x, y_on_line]
             self.arr_y_on_line.append( intercept_coord )
-
-
-
-
-    # def error(self, observation):
-    #     """ Supports update_RSS """
-    #
-    #     x1, y1 = self.arr_start
-    #     x2, y2 = observation
-    #     theta = m.radians(self.degrees)
-    #
-    #     adj = x2 - x1
-    #     opp = m.tan(theta) * adj
-    #
-    #     y_on_line = (x2, y1 + opp)
-    #     self.arr_y_on_line.append( y_on_line )
-    #
-    #
-    #     error = self.get_euclid(observation, y_on_line)
-    #
-    #     return error
-
-
-
-
-    """ DRAWING """
-    """ DRAWING """
-    """ DRAWING """
-    """ DRAWING """
-
-
-
-
-
-
-    def draw_line(self):
-
-        c1 = self.set.light_grey_object_538
-        c2 = self.set.object2_538
-        pygame.draw.line(self.win, c1, tuple(self.pixel_start), tuple(self.pixel_end), 2)
-
-        ## Draw mid circle
-        pygame.draw.circle(self.win, c1, self.pixel_mid, 6, 2)
-        pygame.draw.circle(self.win, self.set.white, self.pixel_mid, 4, 0)
-
-        ## Draw start circle
-        pygame.draw.circle(self.win, c2, self.pixel_start, 6, 0)
-
-        self.draw_mid_coord()
-        self.draw_start_coord()
-
-    def draw_mid_coord(self):
-        arr_x, arr_y = self.arr_mid
-        pixel_x, pixel_y = self.pixel_mid
-        x, y = self.pixel_mid
-
-        arr_text = str( (round(arr_x, 1), round(arr_y, 1) ) )
-        pixel_text = str( (x, y) )
-
-        y -= 11
-        self.printr.coord_printr(arr_text, x+15, y, self.set.grey)
-        self.printr.coord_printr(pixel_text, x+15, y+15, self.set.blue)
-
-    def draw_start_coord(self):
-        arr_x, arr_y = self.arr_start
-        x, y = self.pixel_start
-
-        arr_text = str( (round(arr_x, 1), round(arr_y, 1) ) )
-        pixel_text = str( (x, y) )
-
-        y -= 11
-        self.printr.coord_printr(arr_text, x+15, y, self.set.grey)
-        self.printr.coord_printr(pixel_text, x+15, y+15, self.set.blue)
-
-
-    def draw_intercepts(self):
-        if self.show_intercepts:
-            self.printr.coord_printr("Intercepts Tracer", 1600, 400, self.set.red)
-
-            for intercept in self.arr_y_on_line:
-                arr_x, arr_y = intercept
-                px_x, px_y = self.convert_to_pixels(intercept)
-                pygame.draw.circle(self.win, self.set.red, (px_x, px_y), 6, 0)
-
-                ### Tracer
-                arr_text = str( (round(arr_x, 1), round(arr_y, 1) ) )
-                pixel_text = str( (px_x, px_y) )
-
-                px_y -= 11
-                self.printr.coord_printr(arr_text, px_x+15, px_y, self.set.grey)
-                self.printr.coord_printr(pixel_text, px_x+15, px_y+15, self.set.blue)
+            self.pixel_y_on_line.append(self.convert_to_pixels(intercept_coord))

@@ -1,4 +1,4 @@
-""" April 12, 2021 """
+""" April 18, 2021 """
 
 import pygame
 import numpy as np
@@ -13,7 +13,7 @@ class Arr:
 
         ## Fundamental anchors -- directly equate to the arr min and max
         self.pixel_origin = (200, 850)
-        self.pixel_w = 1400
+        self.pixel_w = 1200
         self.pixel_h = 700
 
         ## How many labels to divide each axis into
@@ -33,6 +33,9 @@ class Arr:
         self.configure_conversion_factor()
         self.get_centroid()
         self.configure_false_axes()
+
+        self.regression()
+        self.get_pixels_of_arr()
 
 
     """ CONFIGURATION STUFF """
@@ -62,7 +65,7 @@ class Arr:
         self.arr_x_scale = np.linspace( self.arr_x_min, self.arr_x_max, self.x_num_labels )
         self.arr_y_scale = np.linspace( self.arr_y_min, self.arr_y_max, self.y_num_labels )
 
-        #print(self.pixel_y_scale)
+
 
     """ CONVERSION STUFF """
 
@@ -131,6 +134,35 @@ class Arr:
 
         self.arr_centroid = [x, y]
         self.pixel_centroid = list( self.convert_to_pixels( (x, y) ) )
+
+
+    def get_pixels_of_arr(self):
+        arr = []
+        for coord in self.arr:
+            pixels = self.convert_to_pixels(coord)
+            arr.append( tuple(pixels) )
+
+        self.pixels_of_arr = tuple(arr)
+
+
+
+    """ FIND COEFFICIENTS AND SSE FOR BEST-FIT LINE """
+    def regression(self):
+        x_mean, y_mean = self.arr_centroid
+        x_dev = self.arr[:,0] - x_mean
+        y_dev = self.arr[:,1] - y_mean
+
+        numerator = (x_dev * y_dev).sum()
+        denom = (x_dev**2).sum()
+
+        self.b1 = numerator/denom
+        self.b0 = y_mean - self.b1*x_mean
+
+        pred = self.b0 + (self.b1 * self.arr[:,0])
+        error = self.arr[:,1] - pred
+        squared_error = error**2
+        self.SSE = squared_error.sum()
+
 
 
     """ UTILITY """

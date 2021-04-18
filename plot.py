@@ -12,22 +12,28 @@ class Plot(Arr):
         super().__init__()
         self.win = win
         self.printr = Printr(self.win, self.set)
+        self.show_centroid = False
+        self.c1 = self.set.light_grey ## Arr coord's
+        self.c2 = self.set.light_blue ## Pixel coords
+
+
+    def update(self, show_centroid):
+        self.show_centroid = show_centroid
+
 
     def draw(self):
         self.draw_axes()
         self.draw_x_axes_labels()
         self.draw_y_axes_labels()
-        self.draw_origin()
         self.draw_centroid()
         self.draw_array()
 
 
     def draw_array(self):
-        c = self.set.blue
 
         for arr_coord in self.arr:
             px_coord = self.convert_to_pixels(arr_coord)
-            pygame.draw.circle(self.win, c, px_coord, 4, 0)
+            pygame.draw.circle(self.win, self.set.blue, px_coord, 4, 0)
             self.draw_arr_coord(arr_coord, px_coord)
 
 
@@ -36,32 +42,26 @@ class Plot(Arr):
         arr_text = str( (round(arr[0], 1), round(arr[1], 1) ) )
         pixel_text = str( (x, y) )
 
-        self.printr.coord_printr(arr_text, x-45, y, self.set.grey)
-
-
-
-    def draw_origin(self):
-        return
-        # c = self.set.light_grey
-        #
-        # pygame.draw.circle(self.win, c, self.pixel_origin, 5, 0)
-        #
-        # x = self.pixel_origin[0] + 15
-        # y = self.pixel_origin[1] - 20
-        #
-        # self.printr.coord_printr(str(self.arr_origin), x, y, self.set.black)
-        # self.printr.coord_printr(str(self.pixel_origin), x, y+15, self.set.blue)
+        self.printr.coord_printr(arr_text, x-45, y, self.c1)
 
 
     def draw_centroid(self):
-        c = self.set.light_grey_object_538
-        x, y = self.arr_centroid
-        text = "Centroid: " + str( ( round(x,1), round(y,1) ) )
 
-        x, y = self.pixel_centroid
+        if self.show_centroid:
+            c = self.set.object2_538
 
-        pygame.draw.circle(self.win, c, self.pixel_centroid, 4, 0)
-        self.printr.coord_printr(text, x+10, y-15, c)
+            x, y = self.arr_centroid
+            text = "Centroid: " + str( ( round(x,1), round(y,1) ) )
+
+            x, y = self.pixel_centroid
+
+            ### Draw horizontal line, vertical lines
+            pygame.draw.line(self.win, c, (self.pixel_x_min, y), (self.pixel_x_max, y), 1)
+            pygame.draw.line(self.win, c, (x, self.pixel_y_max), (x, self.pixel_y_min), 1)
+
+            ### Draw centroid circle and coordinates
+            pygame.draw.circle(self.win, c, self.pixel_centroid, 5, 0)
+            self.printr.coord_printr(text, x+10, y-18, self.c1)
 
 
     def draw_axes(self):
@@ -70,8 +70,8 @@ class Plot(Arr):
         right = x + self.false_axis_w
         top = y - self.false_axis_h
 
-        pygame.draw.line(self.win, c, (x, y), (x, top), 2)
-        pygame.draw.line(self.win, c, (x, y), (right, y), 2)
+        pygame.draw.line(self.win, self.c1, (x, y), (x, top), 2)
+        pygame.draw.line(self.win, self.c1, (x, y), (right, y), 2)
 
 
     def draw_x_axes_labels(self):
@@ -80,19 +80,18 @@ class Plot(Arr):
         y = self.false_axes_origin[1]
         origin_x = self.pixel_origin[0]
 
-
         for i in range(self.x_num_labels):
             pixel_x = self.pixel_x_scale[i]
 
             ### Draw dot on axis
-            self.draw_axis_dot(pixel_x, y+1)
+            pygame.draw.circle(self.win, self.set.grey, (pixel_x, y+1), 2, 0)
 
             ### Draw labels
             offset_x = pixel_x - 12
             arr_label = str( round(self.arr_x_scale[i], 1) )
             pixel_label = str( int(self.pixel_x_scale[i]) )
 
-            self.printr.coord_printr(arr_label, offset_x, y + 10, self.set.black)
+            self.printr.coord_printr(arr_label, offset_x, y + 10, self.set.light_grey)
             self.printr.coord_printr(pixel_label, offset_x, y + 25, self.set.blue)
 
 
@@ -105,19 +104,12 @@ class Plot(Arr):
                 pixel_y = self.pixel_y_scale[i]
 
                 ### Draw dot on axis
-                self.draw_axis_dot(x+1, pixel_y)
+                pygame.draw.circle(self.win, self.set.grey, (x+1, pixel_y), 2, 0)
 
                 ### Draw labels
                 offset_y = pixel_y - 15
                 arr_label = str( round(self.arr_y_scale[i], 1) )
                 pixel_label = str( int(self.pixel_y_scale[i]) )
 
-                self.printr.coord_printr(arr_label, x - 40, offset_y, self.set.black)
+                self.printr.coord_printr(arr_label, x - 40, offset_y, self.set.light_grey)
                 self.printr.coord_printr(pixel_label, x - 40, offset_y + 15, self.set.blue)
-
-
-
-
-    """ Utility """
-    def draw_axis_dot(self, x, y):
-        pygame.draw.circle(self.win, self.set.grey, (x, y), 2, 0)

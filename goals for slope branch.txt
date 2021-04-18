@@ -23,4 +23,3 @@ Getting stuck using trig. Also, trig is not how you do regression... though it's
 	- y = b0 + b1·x
 
 
-

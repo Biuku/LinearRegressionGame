@@ -20,11 +20,10 @@ class Main(PygameBasics):
         ## Movement flags
         self.moving = False
         self.rotating = False
-        self.snap_to_centroid = False
+        self.show_centroid = False
 
         ## Display flags
         self.show_intercepts = False
-
 
 
     """ EVENTS """
@@ -35,7 +34,7 @@ class Main(PygameBasics):
 
 
     def right_click_events(self):
-        self.rotating = -3 ## trig degrees are counter-clockwise. negative = clockwise
+        self.rotating = -2 ## trig degrees are counter-clockwise. negative = clockwise
 
     def mouse_button_up_events(self):
         self.moving = False
@@ -43,13 +42,13 @@ class Main(PygameBasics):
 
     def keydown_events(self, event):
         if event.key == pygame.K_a:
-            self.rotating = 0.1 ## trig degrees are counter-clockwise. positive = counter clockwise
+            self.rotating = 0.05 ## trig degrees are counter-clockwise. positive = counter clockwise
 
         if event.key == pygame.K_d:
-            self.rotating = -0.1 ## trig degrees are counter-clockwise. negative = clockwise
+            self.rotating = -0.05 ## trig degrees are counter-clockwise. negative = clockwise
 
         if event.key == pygame.K_c:
-            self.snap_to_centroid = True
+            self.show_centroid = not self.show_centroid
 
         if event.key == pygame.K_i:
             self.show_intercepts = not self.show_intercepts
@@ -65,11 +64,9 @@ class Main(PygameBasics):
     """ UPDATES """
 
     def updates(self):
-        self.fitline.update_motion(self.moving, self.rotating, self.snap_to_centroid)
-        self.fitline.update_display(self.show_intercepts)
+        self.plot.update(self.show_centroid)
+        self.fitline.update(self.moving, self.rotating, self.show_intercepts)
         self.draw()
-
-        self.snap_to_centroid = False
 
 
     def draw(self):
